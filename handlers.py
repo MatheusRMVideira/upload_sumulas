@@ -181,7 +181,7 @@ def match_players(programVariables, logText):
                 
     return error, errorPlayers
 
-def upload_points(programVariables, programOptions, logText):
+def upload_points(programOptions, programVariables, logText):
     error = False
     errorPlayers = []
     url = "https://www.interrep.com.br/api/"
@@ -196,7 +196,7 @@ def upload_points(programVariables, programOptions, logText):
                                       body=urllib.parse.urlencode(body))[1]
             response = json.loads(content.decode('utf-8'))
             # if response does not contain key 'id' then there was an error
-            if 'id' not in response:
+            if 'name' not in response:
                 logText.insert('end', response)
                 logText.yview('end')
                 error = True
@@ -227,6 +227,11 @@ def get_all_republics(programOptions, programVariables, logText):
                            method='GET',
                            headers={'Content-Type': 'application/x-www-form-urlencoded',
                                     'Authorization': 'Bearer ' + programOptions.bearerToken})[1]
+    if content == b'' or content == None:
+        logText.insert('end', 'Erro ao buscar republicas')
+        logText.yview('end')
+        error = True
+        return error
     response = json.loads(content.decode('utf-8'))
     logText.insert('end', 'Quant. de republicas: ' + str(len(response)))
     logText.yview('end')
@@ -263,8 +268,9 @@ def upload_games(programOptions, programVariables, logText):
     url = "https://www.interrep.com.br/api/"
     http = httplib2.Http()
     for sumula in programVariables.sumulaObjectsList:
+        errorSumula = False
         body = {'republic_home_id': sumula.homeRepublic[0], 'republic_away_id': sumula.awayRepublic[0], 'time': '00:00', 'place': 'Dr Soccer'}
-        content = http.request(url + programOptions.serie + '/games',
+        content = http.request(url + programOptions.serie + '/games/',
                                method='POST',
                                headers={'Content-Type': 'application/x-www-form-urlencoded',
                                         'Authorization': 'Bearer ' + programOptions.bearerToken},
@@ -274,7 +280,22 @@ def upload_games(programOptions, programVariables, logText):
             logText.insert('end', response)
             logText.yview('end')
             error = True
+            errorSumula = True
             errorGames.append([sumula.homeName, sumula.awayName])
+        if not errorSumula:
+            # Create score
+            body = {'score_home': sumula.homeScore, 'score_away': sumula.awayScore}
+            content = http.request(url + programOptions.serie + '/games/' + str(response['id']),
+                                   method='PUT',
+                                   headers={'Content-Type': 'application/x-www-form-urlencoded',
+                                            'Authorization': 'Bearer ' + programOptions.bearerToken},
+                                    body=urllib.parse.urlencode(body))[1]
+            response = json.loads(content.decode('utf-8'))
+            if 'id' not in response:
+                logText.insert('end', response)
+                logText.yview('end')
+                error = True
+                errorGames.append([sumula.homeName, sumula.awayName])
     return error, errorGames
 
 def handle_match_player_button(programVariables, logText, playerId, player, matchPlayerFrame):
