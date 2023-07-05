@@ -1,6 +1,8 @@
 # Upload de Súmulas 2023
 
 Programa muito caótico para facilitar o envio de súmulas para o site do interrep 2023.
+Me perdoe por não seguir nenhuma boa prática e não possuir documentação, foi feito em uma tarde na correria por pura necessidade.
+Não, não precisava ter GUI, mas imaginei que outras pessoas também poderiam utilizar - com mais facilidade - caso possuísse.
 
 Nele é possível selecionar:
 - A Série (A, B e Feminino) na qual a súmula pertence;
